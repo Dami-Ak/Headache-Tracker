@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { format } from 'date-fns'
+import { format, parseISO, isValid } from 'date-fns'
 import { insertEpisode, updateEpisode } from '../lib/queries'
 import type { Episode, Intensity, Outcome } from '../lib/supabase'
 import { TRIGGERS } from '../lib/supabase'
@@ -19,11 +19,14 @@ function todayISO() {
 }
 
 function formatDateLabel(iso: string) {
+  if (!iso) return 'Today'
+  const d = parseISO(iso)
+  if (!isValid(d)) return iso
   const today = todayISO()
   const yesterday = format(new Date(Date.now() - 86400000), 'yyyy-MM-dd')
   if (iso === today) return 'Today'
   if (iso === yesterday) return 'Yesterday'
-  return format(new Date(iso + 'T00:00:00'), 'MMM d')
+  return format(d, 'MMM d')
 }
 
 function format12hr(time24: string) {
@@ -112,7 +115,10 @@ type SaveState = 'idle' | 'saving' | 'success'
 export default function LogSheet({ medication, initialDate, episode, onClose, onSaved }: LogSheetProps) {
   const isEdit = !!episode
 
-  const [date, setDate] = useState(episode?.date ?? initialDate ?? todayISO())
+  const [date, setDate] = useState(() => {
+    const raw = episode?.date ?? initialDate ?? ''
+    return raw && isValid(parseISO(raw)) ? raw : todayISO()
+  })
   const [time, setTime] = useState(episode ? episode.time.substring(0, 5) : now24hr())
   const [intensity, setIntensity] = useState<Intensity | null>(episode?.intensity ?? null)
   const [medTaken, setMedTaken] = useState<boolean | null>(episode?.medication_taken ?? null)
