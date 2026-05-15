@@ -57,8 +57,10 @@ interface HomeScreenProps {
   loading: boolean
   error: string | null
   medication: string
+  userName: string
   onLogPress: () => void
   onSettingsPress: () => void
+  onSwitchUser: () => void
   onDelete: (id: string) => void
 }
 
@@ -75,8 +77,10 @@ export default function HomeScreen({
   loading,
   error,
   medication,
+  userName,
   onLogPress,
   onSettingsPress,
+  onSwitchUser,
   onDelete,
 }: HomeScreenProps) {
   const navigate = useNavigate()
@@ -117,7 +121,18 @@ export default function HomeScreen({
     <div className="flex flex-col flex-1 overflow-y-auto pb-4">
       {/* Header */}
       <div className="flex items-center justify-between px-4 pt-12 pb-4">
-        <h1 className="text-xl font-bold text-[#18103A]">Headache Tracker</h1>
+        <div className="flex flex-col gap-1">
+          <h1 className="text-xl font-bold text-[#18103A]">Headache Tracker</h1>
+          {userName && (
+            <button onClick={onSwitchUser} className="flex items-center gap-1.5 w-fit">
+              <span className="w-5 h-5 rounded-full bg-[#16A34A] flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0">
+                {userName.charAt(0).toUpperCase()}
+              </span>
+              <span className="text-xs text-[#6B7280]">{userName}</span>
+              <span className="text-[10px] text-[#9CA3AF]">· switch</span>
+            </button>
+          )}
+        </div>
         <button
           onClick={onSettingsPress}
           className="w-9 h-9 flex items-center justify-center rounded-full bg-white shadow-sm text-[#6B7280]"

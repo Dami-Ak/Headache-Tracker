@@ -87,8 +87,8 @@ function PageWrapper({ children }: { children: React.ReactNode }) {
 }
 
 function AppShell() {
-  const { userName, setUserName } = useUserName()
-  const { medication, setMedication } = useMedication()
+  const { userName, setUserName, clearUserName } = useUserName()
+  const { medication, setMedication, clearMedication } = useMedication()
   const [showLog, setShowLog] = useState(false)
   const [logInitialDate, setLogInitialDate] = useState<string | undefined>(undefined)
   const { episodes, stats, loading, error, refetch } = useEpisodes()
@@ -99,6 +99,13 @@ function AppShell() {
   function handleSettings() {
     const name = prompt('Update medication name:', medication ?? '')
     if (name && name.trim()) setMedication(name.trim())
+  }
+
+  function handleSwitchUser() {
+    if (window.confirm('Switch user? Your data will still be here when you come back.')) {
+      clearUserName()
+      clearMedication()
+    }
   }
 
   function openLog(date?: string) {
@@ -160,8 +167,10 @@ function AppShell() {
                     loading={loading}
                     error={error}
                     medication={medication ?? ''}
+                    userName={userName ?? ''}
                     onLogPress={openLog}
                     onSettingsPress={handleSettings}
+                    onSwitchUser={handleSwitchUser}
                     onDelete={handleDelete}
                   />
                 </PageWrapper>
@@ -174,8 +183,10 @@ function AppShell() {
                   <CalendarView
                     episodes={episodes}
                     medication={medication ?? ''}
+                    userName={userName ?? ''}
                     onLogPress={openLog}
                     onSettingsPress={handleSettings}
+                    onSwitchUser={handleSwitchUser}
                     onDelete={handleDelete}
                   />
                 </PageWrapper>
@@ -188,9 +199,11 @@ function AppShell() {
                   <StatsScreen
                     episodes={episodes}
                     medication={medication ?? ''}
+                    userName={userName ?? ''}
                     daysSince={stats.daysSince}
                     personalBest={stats.personalBest}
                     onLogPress={openLog}
+                    onSwitchUser={handleSwitchUser}
                   />
                 </PageWrapper>
               }

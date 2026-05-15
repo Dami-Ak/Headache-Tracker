@@ -70,12 +70,14 @@ const TRASH = (
 interface CalendarViewProps {
   episodes: Episode[]
   medication: string
+  userName: string
   onLogPress: (date?: string) => void
   onSettingsPress: () => void
+  onSwitchUser: () => void
   onDelete: (id: string) => void
 }
 
-export default function CalendarView({ episodes, medication, onLogPress, onSettingsPress, onDelete }: CalendarViewProps) {
+export default function CalendarView({ episodes, medication, userName, onLogPress, onSettingsPress, onSwitchUser, onDelete }: CalendarViewProps) {
   const [currentMonth, setCurrentMonth] = useState(new Date())
   const [deletingId, setDeletingId] = useState<string | null>(null)
 
@@ -105,7 +107,18 @@ export default function CalendarView({ episodes, medication, onLogPress, onSetti
     <div className="flex flex-col flex-1 overflow-y-auto pb-4">
       {/* Header */}
       <div className="flex items-center justify-between px-4 pt-12 pb-4">
-        <h1 className="text-xl font-bold text-[#18103A]">Calendar</h1>
+        <div className="flex flex-col gap-1">
+          <h1 className="text-xl font-bold text-[#18103A]">Calendar</h1>
+          {userName && (
+            <button onClick={onSwitchUser} className="flex items-center gap-1.5 w-fit">
+              <span className="w-5 h-5 rounded-full bg-[#16A34A] flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0">
+                {userName.charAt(0).toUpperCase()}
+              </span>
+              <span className="text-xs text-[#6B7280]">{userName}</span>
+              <span className="text-[10px] text-[#9CA3AF]">· switch</span>
+            </button>
+          )}
+        </div>
         <button
           onClick={onSettingsPress}
           className="w-9 h-9 flex items-center justify-center rounded-full bg-white shadow-sm text-[#6B7280]"

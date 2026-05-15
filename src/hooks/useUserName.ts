@@ -12,5 +12,10 @@ export function useUserName() {
     setUserNameState(name)
   }
 
-  return { userName, setUserName }
+  function clearUserName() {
+    localStorage.removeItem(KEY)
+    setUserNameState(null)
+  }
+
+  return { userName, setUserName, clearUserName }
 }

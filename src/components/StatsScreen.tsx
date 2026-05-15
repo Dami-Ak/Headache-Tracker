@@ -161,12 +161,14 @@ function HBar({ pct, color = '#16A34A' }: { pct: number; color?: string }) {
 interface StatsScreenProps {
   episodes: Episode[]
   medication: string
+  userName: string
   daysSince: number | null
   personalBest: number
   onLogPress: () => void
+  onSwitchUser: () => void
 }
 
-export default function StatsScreen({ episodes, medication, daysSince, personalBest, onLogPress }: StatsScreenProps) {
+export default function StatsScreen({ episodes, medication, userName, daysSince, personalBest, onLogPress, onSwitchUser }: StatsScreenProps) {
   const sorted = [...episodes].sort((a, b) => {
     const da = a.date + 'T' + a.time
     const db = b.date + 'T' + b.time
@@ -193,8 +195,19 @@ export default function StatsScreen({ episodes, medication, daysSince, personalB
 
   return (
     <div className="flex flex-col flex-1 overflow-y-auto pb-4">
-      <div className="px-4 pt-12 pb-4">
-        <h1 className="text-xl font-bold text-[#18103A]">Stats</h1>
+      <div className="flex items-center justify-between px-4 pt-12 pb-4">
+        <div className="flex flex-col gap-1">
+          <h1 className="text-xl font-bold text-[#18103A]">Stats</h1>
+          {userName && (
+            <button onClick={onSwitchUser} className="flex items-center gap-1.5 w-fit">
+              <span className="w-5 h-5 rounded-full bg-[#16A34A] flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0">
+                {userName.charAt(0).toUpperCase()}
+              </span>
+              <span className="text-xs text-[#6B7280]">{userName}</span>
+              <span className="text-[10px] text-[#9CA3AF]">· switch</span>
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="px-4 flex flex-col gap-4">
