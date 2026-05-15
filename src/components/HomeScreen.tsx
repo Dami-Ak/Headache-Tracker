@@ -4,7 +4,7 @@ import { format, startOfWeek, endOfWeek } from 'date-fns'
 import type { Stats } from '../hooks/useEpisodes'
 import HeroCard from './HeroCard'
 import EpisodeItem from './EpisodeItem'
-import type { Intensity, Outcome } from '../lib/supabase'
+import type { Episode, Intensity, Outcome } from '../lib/supabase'
 
 const INTENSITY_EMOJI: Record<Intensity, string> = {
   mild: '😐',
@@ -61,6 +61,7 @@ interface HomeScreenProps {
   onLogPress: () => void
   onSettingsPress: () => void
   onSwitchUser: () => void
+  onEdit: (episode: Episode) => void
   onDelete: (id: string) => void
 }
 
@@ -81,6 +82,7 @@ export default function HomeScreen({
   onLogPress,
   onSettingsPress,
   onSwitchUser,
+  onEdit,
   onDelete,
 }: HomeScreenProps) {
   const navigate = useNavigate()
@@ -250,7 +252,7 @@ export default function HomeScreen({
           ) : (
             <div className="flex flex-col gap-2">
               {stats.recentEpisodes.map(ep => (
-                <EpisodeItem key={ep.id} episode={ep} onDelete={onDelete} />
+                <EpisodeItem key={ep.id} episode={ep} onEdit={onEdit} onDelete={onDelete} />
               ))}
             </div>
           )}

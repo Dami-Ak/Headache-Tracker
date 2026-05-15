@@ -1,8 +1,8 @@
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { format } from 'date-fns'
-import { insertEpisode } from '../lib/queries'
-import type { Intensity, Outcome } from '../lib/supabase'
+import { insertEpisode, updateEpisode } from '../lib/queries'
+import type { Episode, Intensity, Outcome } from '../lib/supabase'
 import { TRIGGERS } from '../lib/supabase'
 
 function pad(n: number) {
@@ -31,16 +31,6 @@ function format12hr(time24: string) {
   const suffix = h >= 12 ? 'PM' : 'AM'
   const hour = h % 12 || 12
   return `${hour}:${pad(m)} ${suffix}`
-}
-
-function openPicker(el: HTMLInputElement | null) {
-  if (!el) return
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ;(el as any).showPicker()
-  } catch {
-    el.click()
-  }
 }
 
 // ── celebration messages ──────────────────────────────────────────────────────
@@ -112,26 +102,26 @@ const OUTCOMES: { value: Outcome; emoji: string; label: string }[] = [
 interface LogSheetProps {
   medication: string
   initialDate?: string
+  episode?: Episode
   onClose: () => void
   onSaved: () => void
 }
 
 type SaveState = 'idle' | 'saving' | 'success'
 
-export default function LogSheet({ medication, initialDate, onClose, onSaved }: LogSheetProps) {
-  const [date, setDate] = useState(initialDate ?? todayISO())
-  const [time, setTime] = useState(now24hr())
-  const [intensity, setIntensity] = useState<Intensity | null>(null)
-  const [medTaken, setMedTaken] = useState<boolean | null>(null)
-  const [outcome, setOutcome] = useState<Outcome | null>(null)
-  const [triggers, setTriggers] = useState<string[]>([])
-  const [notes, setNotes] = useState('')
+export default function LogSheet({ medication, initialDate, episode, onClose, onSaved }: LogSheetProps) {
+  const isEdit = !!episode
+
+  const [date, setDate] = useState(episode?.date ?? initialDate ?? todayISO())
+  const [time, setTime] = useState(episode ? episode.time.substring(0, 5) : now24hr())
+  const [intensity, setIntensity] = useState<Intensity | null>(episode?.intensity ?? null)
+  const [medTaken, setMedTaken] = useState<boolean | null>(episode?.medication_taken ?? null)
+  const [outcome, setOutcome] = useState<Outcome | null>(episode?.outcome ?? null)
+  const [triggers, setTriggers] = useState<string[]>(episode?.triggers ?? [])
+  const [notes, setNotes] = useState(episode?.notes ?? '')
   const [saveState, setSaveState] = useState<SaveState>('idle')
   const [error, setError] = useState<string | null>(null)
   const [celebration, setCelebration] = useState<CelebrationMsg | null>(null)
-
-  const dateRef = useRef<HTMLInputElement | null>(null)
-  const timeRef = useRef<HTMLInputElement | null>(null)
 
   const canSave = intensity !== null && medTaken !== null && outcome !== null
 
@@ -145,19 +135,26 @@ export default function LogSheet({ medication, initialDate, onClose, onSaved }: 
     if (!canSave) return
     setError(null)
     setSaveState('saving')
+    const payload = {
+      date,
+      time: time + ':00',
+      intensity: intensity!,
+      medication_taken: medTaken!,
+      outcome: outcome!,
+      triggers,
+      notes: notes.trim() || null,
+    }
     try {
-      await insertEpisode({
-        date,
-        time: time + ':00',
-        intensity: intensity!,
-        medication_taken: medTaken!,
-        outcome: outcome!,
-        triggers,
-        notes: notes.trim() || null,
-      })
-      setCelebration(getMsg(intensity!, outcome!, medTaken!))
-      setSaveState('success')
-      setTimeout(() => onSaved(), 2800)
+      if (isEdit) {
+        await updateEpisode(episode!.id, payload)
+        setSaveState('success')
+        setTimeout(() => onSaved(), 800)
+      } else {
+        await insertEpisode(payload)
+        setCelebration(getMsg(intensity!, outcome!, medTaken!))
+        setSaveState('success')
+        setTimeout(() => onSaved(), 2800)
+      }
     } catch (e) {
       setSaveState('idle')
       const msg = e instanceof Error ? e.message : String(e)
@@ -199,7 +196,7 @@ export default function LogSheet({ medication, initialDate, onClose, onSaved }: 
           >
             ×
           </button>
-          <span className="font-semibold text-[#18103A]">Log Headache</span>
+          <span className="font-semibold text-[#18103A]">{isEdit ? 'Edit Episode' : 'Log Headache'}</span>
           <div className="w-8" />
         </div>
 
@@ -210,44 +207,34 @@ export default function LogSheet({ medication, initialDate, onClose, onSaved }: 
             </div>
           )}
 
-          {/* WHEN */}
+          {/* WHEN — overlay input trick: invisible native input sits on top of styled button */}
           <div>
             <div className="text-[10px] font-semibold uppercase tracking-widest text-[#9CA3AF] mb-3">When</div>
             <div className="flex gap-2">
-              <div className="flex-1">
-                <button
-                  type="button"
-                  onClick={() => openPicker(dateRef.current)}
-                  className="w-full flex items-center gap-2 px-4 py-3 rounded-2xl border-2 border-[#D1FAE5] bg-[#F0FDF4]"
-                >
+              <div className="relative flex-1">
+                <div className="w-full flex items-center gap-2 px-4 py-3 rounded-2xl border-2 border-[#D1FAE5] bg-[#F0FDF4] pointer-events-none">
                   <span>📅</span>
                   <span className="text-sm font-medium text-[#16A34A]">{formatDateLabel(date)}</span>
-                </button>
+                </div>
                 <input
-                  ref={dateRef}
                   type="date"
                   value={date}
                   max={todayISO()}
                   onChange={e => e.target.value && setDate(e.target.value)}
-                  className="sr-only"
+                  className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
                 />
               </div>
 
-              <div className="flex-1">
-                <button
-                  type="button"
-                  onClick={() => openPicker(timeRef.current)}
-                  className="w-full flex items-center gap-2 px-4 py-3 rounded-2xl border-2 border-[#D1FAE5] bg-[#F0FDF4]"
-                >
+              <div className="relative flex-1">
+                <div className="w-full flex items-center gap-2 px-4 py-3 rounded-2xl border-2 border-[#D1FAE5] bg-[#F0FDF4] pointer-events-none">
                   <span>🕐</span>
                   <span className="text-sm font-medium text-[#16A34A]">{format12hr(time)}</span>
-                </button>
+                </div>
                 <input
-                  ref={timeRef}
                   type="time"
                   value={time}
                   onChange={e => e.target.value && setTime(e.target.value)}
-                  className="sr-only"
+                  className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
                 />
               </div>
             </div>
@@ -346,16 +333,13 @@ export default function LogSheet({ medication, initialDate, onClose, onSaved }: 
               Possible triggers <span className="normal-case font-normal">(optional)</span>
             </div>
             <div className="flex flex-wrap gap-2">
-              {TRIGGERS.map((t, idx) => {
+              {TRIGGERS.map(t => {
                 const active = triggers.includes(t.value)
                 return (
                   <motion.button
                     key={t.value}
                     type="button"
                     onClick={() => toggleTrigger(t.value)}
-                    initial={{ opacity: 0, y: 6 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: idx * 0.03 }}
                     whileTap={{ scale: 0.92 }}
                     className="flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-medium transition-all"
                     style={{
@@ -407,7 +391,7 @@ export default function LogSheet({ medication, initialDate, onClose, onSaved }: 
                 </motion.span>
               ) : (
                 <motion.span key="label" exit={{ opacity: 0 }}>
-                  {saveState === 'saving' ? 'Saving…' : '✓ Save Episode'}
+                  {saveState === 'saving' ? 'Saving…' : isEdit ? '✓ Update Episode' : '✓ Save Episode'}
                 </motion.span>
               )}
             </AnimatePresence>
@@ -421,9 +405,9 @@ export default function LogSheet({ medication, initialDate, onClose, onSaved }: 
         </div>
       </motion.div>
 
-      {/* Celebration overlay */}
+      {/* Celebration overlay — only shown on new entries, not edits */}
       <AnimatePresence>
-        {saveState === 'success' && celebration && (
+        {saveState === 'success' && celebration && !isEdit && (
           <motion.div
             className="fixed inset-0 z-[60] flex flex-col items-center justify-center"
             style={{ background: '#F0FDF4' }}

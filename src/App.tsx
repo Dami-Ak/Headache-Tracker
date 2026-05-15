@@ -5,6 +5,7 @@ import { useMedication } from './hooks/useMedication'
 import { useUserName } from './hooks/useUserName'
 import { useEpisodes } from './hooks/useEpisodes'
 import { deleteEpisode } from './lib/queries'
+import type { Episode } from './lib/supabase'
 import HomeScreen from './components/HomeScreen'
 import CalendarView from './components/CalendarView'
 import StatsScreen from './components/StatsScreen'
@@ -91,6 +92,7 @@ function AppShell() {
   const { medication, setMedication, clearMedication } = useMedication()
   const [showLog, setShowLog] = useState(false)
   const [logInitialDate, setLogInitialDate] = useState<string | undefined>(undefined)
+  const [editingEpisode, setEditingEpisode] = useState<Episode | undefined>(undefined)
   const { episodes, stats, loading, error, refetch } = useEpisodes()
   const refetchRef = useRef(refetch)
   refetchRef.current = refetch
@@ -113,9 +115,15 @@ function AppShell() {
     setShowLog(true)
   }
 
+  function openEdit(episode: Episode) {
+    setEditingEpisode(episode)
+    setShowLog(true)
+  }
+
   function closeLog() {
     setShowLog(false)
     setLogInitialDate(undefined)
+    setEditingEpisode(undefined)
   }
 
   function handleSaved() {
@@ -171,6 +179,7 @@ function AppShell() {
                     onLogPress={openLog}
                     onSettingsPress={handleSettings}
                     onSwitchUser={handleSwitchUser}
+                    onEdit={openEdit}
                     onDelete={handleDelete}
                   />
                 </PageWrapper>
@@ -187,6 +196,7 @@ function AppShell() {
                     onLogPress={openLog}
                     onSettingsPress={handleSettings}
                     onSwitchUser={handleSwitchUser}
+                    onEdit={openEdit}
                     onDelete={handleDelete}
                   />
                 </PageWrapper>
@@ -219,6 +229,7 @@ function AppShell() {
           <LogSheet
             medication={medication ?? ''}
             initialDate={logInitialDate}
+            episode={editingEpisode}
             onClose={closeLog}
             onSaved={handleSaved}
           />

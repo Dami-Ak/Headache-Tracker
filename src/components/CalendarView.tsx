@@ -67,6 +67,13 @@ const TRASH = (
   </svg>
 )
 
+const PENCIL = (
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+  </svg>
+)
+
 interface CalendarViewProps {
   episodes: Episode[]
   medication: string
@@ -74,10 +81,11 @@ interface CalendarViewProps {
   onLogPress: (date?: string) => void
   onSettingsPress: () => void
   onSwitchUser: () => void
+  onEdit: (episode: Episode) => void
   onDelete: (id: string) => void
 }
 
-export default function CalendarView({ episodes, medication, userName, onLogPress, onSettingsPress, onSwitchUser, onDelete }: CalendarViewProps) {
+export default function CalendarView({ episodes, medication, userName, onLogPress, onSettingsPress, onSwitchUser, onEdit, onDelete }: CalendarViewProps) {
   const [currentMonth, setCurrentMonth] = useState(new Date())
   const [deletingId, setDeletingId] = useState<string | null>(null)
 
@@ -270,12 +278,20 @@ export default function CalendarView({ episodes, medication, userName, onLogPres
                           </button>
                         </div>
                       ) : (
-                        <button
-                          onClick={() => setDeletingId(ep.id)}
-                          className="flex-shrink-0 text-[#D1D5DB] hover:text-red-400 p-1 mt-0.5 transition-colors"
-                        >
-                          {TRASH}
-                        </button>
+                        <div className="flex items-center gap-0.5 flex-shrink-0 pt-0.5">
+                          <button
+                            onClick={() => onEdit(ep)}
+                            className="text-[#D1D5DB] hover:text-[#16A34A] p-1 transition-colors"
+                          >
+                            {PENCIL}
+                          </button>
+                          <button
+                            onClick={() => setDeletingId(ep.id)}
+                            className="text-[#D1D5DB] hover:text-red-400 p-1 transition-colors"
+                          >
+                            {TRASH}
+                          </button>
+                        </div>
                       )}
                     </div>
                   ))}

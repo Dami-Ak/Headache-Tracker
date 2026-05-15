@@ -31,6 +31,13 @@ const TRASH = (
   </svg>
 )
 
+const PENCIL = (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+  </svg>
+)
+
 function formatTime(time: string) {
   const [h, m] = time.split(':').map(Number)
   const suffix = h >= 12 ? 'PM' : 'AM'
@@ -40,10 +47,11 @@ function formatTime(time: string) {
 
 interface EpisodeItemProps {
   episode: Episode
+  onEdit?: (episode: Episode) => void
   onDelete?: (id: string) => void
 }
 
-export default function EpisodeItem({ episode, onDelete }: EpisodeItemProps) {
+export default function EpisodeItem({ episode, onEdit, onDelete }: EpisodeItemProps) {
   const [confirming, setConfirming] = useState(false)
   const dateLabel = format(parseISO(episode.date), 'MMM d')
   const timeLabel = formatTime(episode.time)
@@ -74,31 +82,42 @@ export default function EpisodeItem({ episode, onDelete }: EpisodeItemProps) {
         )}
       </div>
 
-      {onDelete && (
-        confirming ? (
-          <div className="flex items-center gap-1.5 flex-shrink-0">
-            <button
-              onClick={() => setConfirming(false)}
-              className="text-xs text-[#9CA3AF] px-2 py-1"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={() => onDelete(episode.id)}
-              className="text-xs text-white bg-red-500 rounded-full px-2.5 py-1 font-medium"
-            >
-              Delete
-            </button>
-          </div>
-        ) : (
+      <div className="flex items-center gap-0.5 flex-shrink-0">
+        {onEdit && !confirming && (
           <button
-            onClick={() => setConfirming(true)}
-            className="flex-shrink-0 text-[#D1D5DB] hover:text-red-400 p-1 transition-colors"
+            onClick={() => onEdit(episode)}
+            className="text-[#D1D5DB] hover:text-[#16A34A] p-1 transition-colors"
           >
-            {TRASH}
+            {PENCIL}
           </button>
-        )
-      )}
+        )}
+
+        {onDelete && (
+          confirming ? (
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={() => setConfirming(false)}
+                className="text-xs text-[#9CA3AF] px-2 py-1"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => onDelete(episode.id)}
+                className="text-xs text-white bg-red-500 rounded-full px-2.5 py-1 font-medium"
+              >
+                Delete
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => setConfirming(true)}
+              className="text-[#D1D5DB] hover:text-red-400 p-1 transition-colors"
+            >
+              {TRASH}
+            </button>
+          )
+        )}
+      </div>
     </div>
   )
 }

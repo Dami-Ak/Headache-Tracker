@@ -23,6 +23,18 @@ export async function insertEpisode(episode: Omit<Episode, 'id' | 'user_id' | 'c
   return data
 }
 
+export async function updateEpisode(id: string, episode: Omit<Episode, 'id' | 'user_id' | 'created_at'>): Promise<Episode> {
+  const { data, error } = await supabase
+    .from('episodes')
+    .update(episode)
+    .eq('id', id)
+    .eq('user_id', getUserId())
+    .select()
+    .single()
+  if (error) throw error
+  return data
+}
+
 export async function deleteEpisode(id: string): Promise<void> {
   const { error } = await supabase
     .from('episodes')
