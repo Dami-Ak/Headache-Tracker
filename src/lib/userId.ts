@@ -1,10 +1,6 @@
-const KEY = 'ht_user_id'
+const KEY = 'ht_user_name'
 
 export function getUserId(): string {
-  let id = localStorage.getItem(KEY)
-  if (!id) {
-    id = crypto.randomUUID()
-    localStorage.setItem(KEY, id)
-  }
-  return id
+  const name = localStorage.getItem(KEY)
+  return name ? name.toLowerCase().trim() : ''
 }
