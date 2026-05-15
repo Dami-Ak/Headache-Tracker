@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { format } from 'date-fns'
 import { insertEpisode, updateEpisode } from '../lib/queries'
@@ -125,6 +125,11 @@ export default function LogSheet({ medication, initialDate, episode, onClose, on
 
   const dateInputRef = useRef<HTMLInputElement>(null)
   const timeInputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = '' }
+  }, [])
 
   const canSave = intensity !== null && medTaken !== null && outcome !== null
 
