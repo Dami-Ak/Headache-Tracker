@@ -77,10 +77,9 @@ function PageWrapper({ children }: { children: React.ReactNode }) {
   return (
     <motion.div
       className="flex flex-col flex-1 overflow-hidden"
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: 8 }}
-      transition={{ duration: 0.18, ease: 'easeOut' }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.15, ease: 'easeOut' }}
     >
       {children}
     </motion.div>
@@ -164,7 +163,7 @@ function AppShell() {
       </AnimatePresence>
 
       <div className="flex-1 flex flex-col overflow-hidden">
-        <AnimatePresence mode="wait">
+        <AnimatePresence>
           <Routes location={location} key={location.pathname}>
             <Route
               path="/"
