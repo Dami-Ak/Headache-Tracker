@@ -2,6 +2,7 @@ import { useState, useRef } from 'react'
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useMedication } from './hooks/useMedication'
+import { useUserName } from './hooks/useUserName'
 import { useEpisodes } from './hooks/useEpisodes'
 import { deleteEpisode } from './lib/queries'
 import HomeScreen from './components/HomeScreen'
@@ -10,7 +11,21 @@ import StatsScreen from './components/StatsScreen'
 import LogSheet from './components/LogSheet'
 import BottomNav from './components/BottomNav'
 
-function Onboarding({ onComplete }: { onComplete: (name: string) => void }) {
+function OnboardingStep({
+  emoji,
+  title,
+  subtitle,
+  placeholder,
+  buttonLabel,
+  onComplete,
+}: {
+  emoji: string
+  title: string
+  subtitle: string
+  placeholder: string
+  buttonLabel: string
+  onComplete: (value: string) => void
+}) {
   const [value, setValue] = useState('')
 
   return (
@@ -28,19 +43,15 @@ function Onboarding({ onComplete }: { onComplete: (name: string) => void }) {
             animate={{ rotate: [0, -10, 10, -10, 0] }}
             transition={{ delay: 0.6, duration: 0.6 }}
           >
-            💊
+            {emoji}
           </motion.div>
-          <h1 className="text-3xl font-bold text-[#18103A] leading-tight">
-            What's your go-to medication?
-          </h1>
-          <p className="text-[#6B7280] text-base">
-            We'll use this to track whether it's helping your headaches.
-          </p>
+          <h1 className="text-3xl font-bold text-[#18103A] leading-tight">{title}</h1>
+          <p className="text-[#6B7280] text-base">{subtitle}</p>
         </div>
         <div className="flex flex-col gap-4">
           <input
             type="text"
-            placeholder="e.g. Ibuprofen, Excedrin..."
+            placeholder={placeholder}
             value={value}
             onChange={e => setValue(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && value.trim() && onComplete(value.trim())}
@@ -53,7 +64,7 @@ function Onboarding({ onComplete }: { onComplete: (name: string) => void }) {
             whileTap={{ scale: 0.97 }}
             className="w-full bg-[#16A34A] text-white font-semibold text-base rounded-full py-4 disabled:opacity-40 transition-opacity"
           >
-            Get Started
+            {buttonLabel}
           </motion.button>
         </div>
       </div>
@@ -76,6 +87,7 @@ function PageWrapper({ children }: { children: React.ReactNode }) {
 }
 
 function AppShell() {
+  const { userName, setUserName } = useUserName()
   const { medication, setMedication } = useMedication()
   const [showLog, setShowLog] = useState(false)
   const [logInitialDate, setLogInitialDate] = useState<string | undefined>(undefined)
@@ -111,8 +123,28 @@ function AppShell() {
   return (
     <div className="relative w-full max-w-sm mx-auto min-h-screen bg-[#F0FAF3] flex flex-col">
       <AnimatePresence>
-        {!medication && (
-          <Onboarding onComplete={name => setMedication(name)} />
+        {!userName && (
+          <OnboardingStep
+            emoji="👋"
+            title="What's your name?"
+            subtitle="Just so we know who's tracking."
+            placeholder="e.g. Alex, Sam..."
+            buttonLabel="Continue"
+            onComplete={name => setUserName(name)}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {userName && !medication && (
+          <OnboardingStep
+            emoji="💊"
+            title="What's your go-to medication?"
+            subtitle="We'll use this to track whether it's helping your headaches."
+            placeholder="e.g. Ibuprofen, Excedrin..."
+            buttonLabel="Get Started"
+            onComplete={med => setMedication(med)}
+          />
         )}
       </AnimatePresence>
 
