@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { format } from 'date-fns'
 import { insertEpisode, updateEpisode } from '../lib/queries'
@@ -123,6 +123,9 @@ export default function LogSheet({ medication, initialDate, episode, onClose, on
   const [error, setError] = useState<string | null>(null)
   const [celebration, setCelebration] = useState<CelebrationMsg | null>(null)
 
+  const dateInputRef = useRef<HTMLInputElement>(null)
+  const timeInputRef = useRef<HTMLInputElement>(null)
+
   const canSave = intensity !== null && medTaken !== null && outcome !== null
 
   function toggleTrigger(value: string) {
@@ -217,10 +220,12 @@ export default function LogSheet({ medication, initialDate, episode, onClose, on
                   <span className="text-sm font-medium text-[#16A34A]">{formatDateLabel(date)}</span>
                 </div>
                 <input
+                  ref={dateInputRef}
                   type="date"
                   value={date}
                   max={todayISO()}
                   onChange={e => e.target.value && setDate(e.target.value)}
+                  onClick={() => { try { (dateInputRef.current as any)?.showPicker() } catch {} }}
                   className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
                 />
               </div>
@@ -231,9 +236,11 @@ export default function LogSheet({ medication, initialDate, episode, onClose, on
                   <span className="text-sm font-medium text-[#16A34A]">{format12hr(time)}</span>
                 </div>
                 <input
+                  ref={timeInputRef}
                   type="time"
                   value={time}
                   onChange={e => e.target.value && setTime(e.target.value)}
+                  onClick={() => { try { (timeInputRef.current as any)?.showPicker() } catch {} }}
                   className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
                 />
               </div>
